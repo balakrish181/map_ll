@@ -48,7 +48,7 @@ class MoleAnalyzer:
 
     def calculate_colour_sd(self, hsv_img):
         hue = hsv_img[:, :, 0]
-        mean = np.mean(hue)
+        mean = np.mean(hue) # Should we take mean only of the masked pixels or should we include the whole image?
         sd = np.sqrt(np.sum((hue - mean) ** 2)) / (hue.size - 1)
         return sd
 
@@ -57,14 +57,16 @@ class MoleAnalyzer:
         mask = self.mask.astype(np.uint8)
 
         # A = number of lesion pixels
+        # a = naffect - affect
         a, A = self.calculate_area(mask)
         Asymmetry = abs((a / A) * 100 / 10) if A != 0 else 0
 
-        # Robust perimeter calculation
         P = perimeter(mask, neighborhood=8)
 
-        Border = ((P ** 2) / (4 * math.pi * A)) / 10 if A > 0 else 0
-        n = (4 * A) / P if P != 0 else 0
+        Border = ((P ** 2) / (4 * math.pi * A)) / 10 if A > 0 else 0  #circularity index
+
+
+        n = (4 * A) / P if P != 0 else 0 
         Diameter = math.sqrt(n) / 10 if n > 0 else 0
 
         hsv_img = matplotlib.colors.rgb_to_hsv(img / 255.0)

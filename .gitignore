@@ -180,4 +180,6 @@ cython_debug/
 /weights/
 /vibe_docs/
 .cursorrules
+/outputs/
+/uploads/
 
