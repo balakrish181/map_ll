@@ -1,0 +1,4 @@
+Asymmetry: 173.61
+Border: 0.17
+Diameter: 0.63
+Colour: 0.00

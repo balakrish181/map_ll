@@ -3,8 +3,7 @@ import torch.nn as nn
 import numpy as np
 from PIL import Image
 import torchvision.transforms as transforms
-#from architectures.mobileunetr import build_mobileunetr_xxs
-from mobileunetr import build_mobileunetr_xxs
+from .mobileunetr import build_mobileunetr_xxs
 import cv2
 import warnings; warnings.filterwarnings("ignore")
 
