@@ -207,36 +207,9 @@ class MoleAnalyzerImproved:
         }
 
 if __name__ == "__main__":
-    # Create dummy images for testing
-    Path("test_images_improved").mkdir(parents=True, exist_ok=True)
     
-    # Dummy original image (e.g., a red square on a blue background)
-    original_dummy = np.full((100, 100, 3), [0, 0, 200], dtype=np.uint8) # Blue background
-    original_dummy[30:70, 30:70, :] = [200, 0, 0] # Red square lesion
-    imageio.v2.imwrite("test_images_improved/image.png", original_dummy)
 
-    # Dummy mask (white square on black background)
-    mask_dummy = np.zeros((100, 100), dtype=np.uint8)
-    mask_dummy[30:70, 30:70] = 255 # White square lesion
-    imageio.v2.imwrite("test_images_improved/image_mask.png", mask_dummy)
-
-    # Test with a more irregular shape
-    original_dummy_irregular = np.full((100, 100, 3), [200, 200, 200], dtype=np.uint8) # Light gray background
-    cv2.ellipse(original_dummy_irregular, (50,50), (30,15), 30, 0, 360, (50,50,150), -1) # Darker ellipse
-    imageio.v2.imwrite("test_images_improved/image_irregular.png", original_dummy_irregular)
-
-    mask_dummy_irregular = np.zeros((100, 100), dtype=np.uint8)
-    cv2.ellipse(mask_dummy_irregular, (50,50), (30,15), 30, 0, 360, 255, -1)
-    imageio.v2.imwrite("test_images_improved/image_mask_irregular.png", mask_dummy_irregular)
-
-
-    print("--- Analyzing Symmetric Square Lesion ---")
-    analyzer_square = MoleAnalyzerImproved("test_images_improved/image.png", "test_images_improved/image_mask.png")
+    analyzer_square = MoleAnalyzerImproved("test_images/image.png", "test_images/image_mask.png")
     results_square = analyzer_square.analyze()
     # print(results_square)
     print("\n")
-
-    print("--- Analyzing Elliptical Lesion ---")
-    analyzer_ellipse = MoleAnalyzerImproved("test_images_improved/image_irregular.png", "test_images_improved/image_mask_irregular.png")
-    results_ellipse = analyzer_ellipse.analyze()
-    # print(results_ellipse)
