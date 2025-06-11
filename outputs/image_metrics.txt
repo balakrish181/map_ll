@@ -1,4 +1,9 @@
-Asymmetry: 173.61
-Border: 0.17
-Diameter: 0.63
+Asymmetry: 1.07
+Border: 0.11
+Diameter: 5.63
 Colour: 0.00
+Raw_Metrics:
+  Area_pixels: 2066.00
+  Asymmetry_0_1: 0.11
+  Border_CircularityIndex: 1.09
+  Diameter_Feret_pixels: 56.29

@@ -13,7 +13,7 @@ sys.path.append(str(Path(__file__).resolve().parent))
 
 from seg_mole_metrics.mobileunetr import build_mobileunetr_xxs
 from seg_mole_metrics.inference import MobileUNETRInference
-from metrics.without_otsu_abcd import MoleAnalyzer
+from metrics.merged_improved_metrics import MoleAnalyzer
 
 class MoleAnalysisPipeline:
     def __init__(self, model_path="weights/segment_mob_unet_.bin"):
@@ -60,7 +60,12 @@ class MoleAnalysisPipeline:
         if save_outputs:
             with open(f"{output_dir}/{base_name}_metrics.txt", "w") as f:
                 for metric, value in metrics.items():
-                    f.write(f"{metric}: {value:.2f}\n")
+                    if isinstance(value, dict):
+                        f.write(f"{metric}:\n")
+                        for sub_metric, sub_value in value.items():
+                            f.write(f"  {sub_metric}: {sub_value:.2f}\n")
+                    else:
+                        f.write(f"{metric}: {value:.2f}\n")
         
         return {
             "mask": mask,
@@ -78,7 +83,12 @@ def main():
     # Print results
     print("\nABCD Metrics:")
     for metric, value in results["metrics"].items():
-        print(f"{metric}: {value:.2f}")
+        if isinstance(value, dict):
+            print(f"{metric}:")
+            for sub_metric, sub_value in value.items():
+                print(f"  {sub_metric}: {sub_value:.2f}")
+        else:
+            print(f"{metric}: {value:.2f}")
 
 if __name__ == "__main__":
-    main() 
+    main()
