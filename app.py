@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
 import os
 from pathlib import Path
-from mole_analysis_pipeline import MoleAnalysisPipeline
+from integrated_pipeline import IntegratedMolePipeline
 import cv2
 import numpy as np
 from datetime import datetime
@@ -21,7 +21,7 @@ Path(UPLOAD_FOLDER).mkdir(exist_ok=True)
 Path(OUTPUT_FOLDER).mkdir(exist_ok=True)
 
 # Initialize the pipeline
-pipeline = MoleAnalysisPipeline()
+pipeline = IntegratedMolePipeline()
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -48,11 +48,11 @@ def analyze():
         
         try:
             # Process the image
-            results = pipeline.process_image(filepath, save_outputs=True)
+            results = pipeline.process_image(filepath, save_intermediate=True, output_dir=app.config['OUTPUT_FOLDER'])
             
             # Prepare response data
             response_data = {
-                'metrics': results['metrics'],
+                'metrics': results,
                 'original_image': f'/uploads/{filename}',
                 'mask_image': f'/outputs/{Path(filename).stem}_mask.png',
                 'overlay_image': f'/outputs/{Path(filename).stem}_overlay.png'
