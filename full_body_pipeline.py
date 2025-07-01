@@ -200,6 +200,7 @@ class FullBodyMoleAnalysisPipeline:
     def crop_moles(self, image_path, detections, output_dir):
         """
         Crops detected moles from the original image and saves them.
+        Adds padding to ensure all cropped images are 512x512 pixels.
 
         Args:
             image_path (str): Path to the original full-body image.
@@ -223,14 +224,45 @@ class FullBodyMoleAnalysisPipeline:
             abs_y2 = int(y2 * h)
 
             # Crop the mole region
-            cropped_img = img[abs_y1:abs_y2, abs_x1:abs_x2]
+            cropped_img = img[abs_y1+25:abs_y2-25, abs_x1+25:abs_x2-25]
             
-            # Save the cropped image
+            # Get current dimensions
+            current_h, current_w = cropped_img.shape[:2]
+            
+            # Calculate padding needed to make it 512x512
+            target_size = 512
+            pad_top = max(0, (target_size - current_h) // 2)
+            pad_bottom = max(0, target_size - current_h - pad_top)
+            pad_left = max(0, (target_size - current_w) // 2)
+            pad_right = max(0, target_size - current_w - pad_left)
+            
+            # If the cropped image is larger than 512x512, resize it to fit
+            if current_h > target_size or current_w > target_size:
+                # Calculate the scaling factor to fit within 512x512 while preserving aspect ratio
+                scale = min(target_size / current_h, target_size / current_w)
+                new_h, new_w = int(current_h * scale), int(current_w * scale)
+                cropped_img = cv2.resize(cropped_img, (new_w, new_h))
+                
+                # Recalculate padding after resize
+                pad_top = (target_size - new_h) // 2
+                pad_bottom = target_size - new_h - pad_top
+                pad_left = (target_size - new_w) // 2
+                pad_right = target_size - new_w - pad_left
+            
+            # Add padding to make the image 512x512
+            padded_img = cv2.copyMakeBorder(
+                cropped_img, 
+                pad_top, pad_bottom, pad_left, pad_right, 
+                cv2.BORDER_CONSTANT, 
+                value=[0, 0, 0]  # Black padding
+            )
+            
+            # Save the padded image
             mole_id = f"mole_{i+1}"
             original_filename = Path(image_path).stem
             cropped_filename = f"{original_filename}_{mole_id}.png"
             cropped_image_path = os.path.join(output_dir, cropped_filename)
-            cv2.imwrite(cropped_image_path, cropped_img)
+            cv2.imwrite(cropped_image_path, padded_img)
             
             cropped_moles.append({
                 'mole_id': mole_id,
