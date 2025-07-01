@@ -183,3 +183,7 @@ cython_debug/
 /outputs/
 /uploads/
 /full_body_output/
+
+*.png
+*.jpg
+*.jpeg   
