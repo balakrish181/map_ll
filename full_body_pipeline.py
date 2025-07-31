@@ -231,11 +231,17 @@ class FullBodyMoleAnalysisPipeline:
             
             # Calculate padding needed to make it 512x512
             target_size = 512
-            pad_top = max(0, (target_size - current_h) // 2)
-            pad_bottom = max(0, target_size - current_h - pad_top)
-            pad_left = max(0, (target_size - current_w) // 2)
-            pad_right = max(0, target_size - current_w - pad_left)
+            # pad_top = max(0, (target_size - current_h) // 2)
+            # pad_bottom = max(0, target_size - current_h - pad_top)
+            # pad_left = max(0, (target_size - current_w) // 2)
+            # pad_right = max(0, target_size - current_w - pad_left)
             
+            pad_top = 0
+            pad_bottom = 0
+            pad_left = 0
+            pad_right = 0
+
+
             # If the cropped image is larger than 512x512, resize it to fit
             if current_h > target_size or current_w > target_size:
                 # Calculate the scaling factor to fit within 512x512 while preserving aspect ratio
