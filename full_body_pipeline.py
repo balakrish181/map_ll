@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 from integrated_pipeline import IntegratedMolePipeline
 import pathlib
-
+import logging
 
 class FullBodyMoleAnalysisPipeline:
     def __init__(self, yolo_model_path, segmentation_model_path, patch_size=1280, patch_overlap=0.2):
@@ -84,10 +84,13 @@ class FullBodyMoleAnalysisPipeline:
         h, w = img.shape[:2]
         
         # Check if the image needs to be processed in patches
-        if max(h, w) > self.patch_size * 1.5:  # If image is significantly larger than patch size
+        #Reduce the number to make it work in the size.patch_size * thing
+        if max(h, w) > self.patch_size * 10:  # If image is significantly larger than patch size
             patches = self.create_image_patches(img)
             all_detections = []
             
+            print('Entered patching')
+            logging.info('Entered patching')
             for patch, x_offset, y_offset in patches:
                 # Save patch to temporary file for YOLO processing
                 temp_patch_path = os.path.join(os.path.dirname(image_path), "temp_patch.jpg")
@@ -224,8 +227,8 @@ class FullBodyMoleAnalysisPipeline:
             abs_y2 = int(y2 * h)
 
             # Crop the mole region
-            cropped_img = img[abs_y1+25:abs_y2-25, abs_x1+25:abs_x2-25]
-            
+            #cropped_img = img[abs_y1+25:abs_y2-25, abs_x1+25:abs_x2-25]
+            cropped_img = img[abs_y1:abs_y2, abs_x1:abs_x2]
             # Get current dimensions
             current_h, current_w = cropped_img.shape[:2]
             
