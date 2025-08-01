@@ -283,6 +283,10 @@ class MoleAnalyzer:
             color_variance = self.color_space_analysis(self.original_img, self.mask)
             Colour = color_variance / 100
 
+        print(f"Diameter in pixels: {diameter_px}")
+        print(f"Pixel to mm conversion: {self.pixel_to_mm} mm/px")
+        print(f"Calculated diameter: {Diameter:.2f} mm")
+
         if show:
             print(f"Asymmetry: {Asymmetry:.2f}")
             print(f"Border: {Border:.2f}")

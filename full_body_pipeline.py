@@ -308,7 +308,7 @@ class FullBodyMoleAnalysisPipeline:
                 # Process each cropped mole image
                 abcd_results = self.integrated_pipeline.process_image(
                     mole_info['cropped_image_path'],
-                    save_intermediate=False # No need to save intermediate results for each mole here
+                    save_intermediate=True # No need to save intermediate results for each mole here
                 )
                 
                 mole_info['analysis'] = abcd_results
