@@ -16,7 +16,9 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 
 class MoleAnalyzer:
-    def __init__(self, original_img_path, binary_mask_path):
+    def __init__(self, original_img_path, binary_mask_path, dpi=96):
+        self.dpi = dpi
+        self.pixel_to_mm = 25.4 / dpi  # 1 pixel in mm
         self.original_img = imageio.imread(original_img_path)
         # Ensure original image is RGB
         if len(self.original_img.shape) == 2:  # Grayscale
@@ -28,6 +30,12 @@ class MoleAnalyzer:
         self.result_img_path = "Result.jpg"
         imageio.imwrite(self.result_img_path, self.masked_img)
 
+    def pixels_to_mm(self, px):
+        return px * self.pixel_to_mm
+
+    def pixels2_to_mm2(self, area_px):
+        return area_px * (self.pixel_to_mm ** 2)
+        
     @staticmethod
     def prepare_mask(mask):
         """Ensure the binary mask is in boolean format."""
@@ -250,49 +258,50 @@ class MoleAnalyzer:
         img = self.masked_img
         mask_uint8 = self.mask.astype(np.uint8) * 255
 
-        # Area calculation
-        _, A = self.calculate_area(self.mask)
-        
-        # Asymmetry calculation
+        # Area calculation in pixels and mm²
+        _, A_px = self.calculate_area(self.mask)
+        A_mm2 = self.pixels2_to_mm2(A_px)
+
+        # Asymmetry
         asymmetry_raw = self.compute_asymmetry(mask_uint8)
-        Asymmetry = asymmetry_raw * 10  # Scale to 0-10 range
+        Asymmetry = asymmetry_raw * 10
 
-        # Border irregularity calculation
+        # Border irregularity
         border_raw = self.border_irregularity_index(mask_uint8)
-        Border = border_raw / 10  # Scale to match original scaling
+        Border = border_raw / 10
 
-        # Diameter calculation (Feret diameter)
-        diameter_raw = self.calculate_diameter(mask_uint8)
-        Diameter = diameter_raw / 10  # Scale to match original scaling
+        # Diameter (in pixels, then converted to mm)
+        diameter_px = self.calculate_diameter(mask_uint8)
+        diameter_raw = diameter_px
+        Diameter = self.pixels_to_mm(diameter_px)
 
-        # Color variance calculation
+        # Colour
         if len(img.shape) == 3:
             hsv_img = matplotlib.colors.rgb_to_hsv(img / 255.0)
             Colour = self.calculate_colour_sd(hsv_img)
         else:
-            # For grayscale images or if HSV conversion is not applicable
             color_variance = self.color_space_analysis(self.original_img, self.mask)
-            Colour = color_variance / 100  # Scaling to match original method
+            Colour = color_variance / 100
 
         if show:
             print(f"Asymmetry: {Asymmetry:.2f}")
             print(f"Border: {Border:.2f}")
-            print(f"Diameter: {Diameter:.2f}")
+            print(f"Diameter (mm): {Diameter:.2f}")
             print(f"Colour: {Colour:.2f}")
             plt.title("Masked Lesion")
             plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB) if len(img.shape) == 3 else img)
             plt.axis('off')
             plt.show()
-            
-        # Convert NumPy types to native Python types for JSON serialization
-        A_py = int(A) if isinstance(A, np.integer) else float(A)
-        asymmetry_raw_py = float(asymmetry_raw) if isinstance(asymmetry_raw, (np.float32, np.float64)) else asymmetry_raw
-        Asymmetry_py = float(Asymmetry) if isinstance(Asymmetry, (np.float32, np.float64)) else Asymmetry
-        Border_py = float(Border) if isinstance(Border, (np.float32, np.float64)) else Border
-        border_raw_py = float(border_raw) if isinstance(border_raw, (np.float32, np.float64)) else border_raw
-        Diameter_py = float(Diameter) if isinstance(Diameter, (np.float32, np.float64)) else Diameter
-        diameter_raw_py = float(diameter_raw) if isinstance(diameter_raw, (np.float32, np.float64)) else diameter_raw
-        Colour_py = float(Colour) if isinstance(Colour, (np.float32, np.float64)) else Colour
+
+        # Final return (keys unchanged — only values converted to mm/mm²)
+        A_py = float(A_mm2)
+        asymmetry_raw_py = float(asymmetry_raw)
+        Asymmetry_py = float(Asymmetry)
+        Border_py = float(Border)
+        border_raw_py = float(border_raw)
+        Diameter_py = float(Diameter)
+        diameter_raw_py = float(diameter_raw)
+        Colour_py = float(Colour)
 
         return {
             "Asymmetry": Asymmetry_py,
@@ -300,12 +309,13 @@ class MoleAnalyzer:
             "Diameter": Diameter_py,
             "Colour": Colour_py,
             "Raw_Metrics": {
-                "Area_pixels": A_py,
+                "Area_pixels": A_py,  # Now in mm², key kept same
                 "Asymmetry_0_1": asymmetry_raw_py,
                 "Border_CircularityIndex": border_raw_py,
-                "Diameter_Feret_pixels": diameter_raw_py
+                "Diameter_Feret_pixels": diameter_raw_py  # Still raw in pixels
             }
         }
+
         
     def calculate_colour_sd(self, hsv_img):
         """
